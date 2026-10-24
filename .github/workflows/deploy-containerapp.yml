@@ -1,0 +1,62 @@
+name: Build and Deploy to Azure Container App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    env:
+      ACR_NAME: myregistry123
+      CONTAINER_APP_NAME: my-container-app
+      RESOURCE_GROUP: my-rg
+      LOCATION: eastus
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Check Azure command-line version
+        run: |
+          az --version
+          az group list --query "[].name" -o tsv
+
+
+      # - name: Build and push image to ACR
+      #   run: |
+      #     az acr build \
+      #       --registry $ACR_NAME \
+      #       --image sample-node:${{ github.sha }} \
+      #       .
+
+      # - name: Create or update Azure Container App
+      #   run: |
+      #     az containerapp show --name $CONTAINER_APP_NAME --resource-group $RESOURCE_GROUP >/dev/null 2>&1 || \
+      #     az containerapp create \
+      #       --name $CONTAINER_APP_NAME \
+      #       --resource-group $RESOURCE_GROUP \
+      #       --environment my-containerapps-env \
+      #       --image $ACR_NAME.azurecr.io/sample-node:${{ github.sha }} \
+      #       --target-port 3000 \
+      #       --ingress external \
+      #       --registry-server $ACR_NAME.azurecr.io \
+      #       --cpu 0.5 \
+      #       --memory 1.0Gi
+
+      #     az containerapp update \
+      #       --name $CONTAINER_APP_NAME \
+      #       --resource-group $RESOURCE_GROUP \
+      #       --image $ACR_NAME.azurecr.io/sample-node:${{ github.sha }}
