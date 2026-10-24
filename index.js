@@ -11,6 +11,9 @@ app.get('/flood', (req, res) => {
   }, 10000) // Simulate a long-running request
 })
 
+app.get('/health', (req, res) => {
+  res.json({ status: 'Healthy' })
+})
 
 app.listen(3000, () => {
   console.log('Server is running on port 3000')
